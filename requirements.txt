@@ -1,0 +1,11 @@
+fastapi
+uvicorn
+python-jose
+pydantic
+motor
+rembg
+google-cloud-storage
+google-cloud-secret-manager
+azure-cognitiveservices-vision-computervision
+python-dotenv
+pymongo
