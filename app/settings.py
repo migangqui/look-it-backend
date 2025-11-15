@@ -7,4 +7,3 @@ config = ConfigService()
 
 MONGO_URI = config.get("MONGO_URI")
 AZURE_CV_KEY = config.get("AZURE_COMPUTER_VISION_KEY")
-PRUEBA_SECRETO = config.get("PRUEBA_SECRETO")
