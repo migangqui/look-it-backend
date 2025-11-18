@@ -32,6 +32,9 @@ export PROJECT_ID=$(gcloud config get-value project)
 export IMAGE_TAG="latest"           # Tag para tu imagen (ej: latest, v1.0, google_auth)
 ```
 
+Tomar como IMAGE_TAG el nombre de la rama de git sin el prefio `feature/`. Ejemplo: si la rama de git es `feature/google_auth`, el tag será `google_auth`. 
+Si la rama no tiene el texto `feature/` será simplemente el nombre de la rama. Ejemplo: si la rama de git es `main`, el tag será `main`. 
+
 ## Paso 1: Dockerizar la Aplicación
 
 ### 1.1 Construir la Imagen Docker
