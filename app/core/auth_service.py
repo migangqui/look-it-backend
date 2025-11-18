@@ -19,14 +19,12 @@ def get_current_user(credentials: HTTPAuthorizationCredentials = Security(securi
 from fastapi import HTTPException
 from app.db.mongo_models import User
 from jose import jwt
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 import requests
-import os
 import app.db.repository.user_repository as user_repository
+from app.settings import GOOGLE_CLIENT_ID, JWT_SECRET
 
 # Configuración
-GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "415464940557-l3t9cv90k90rmctqrso3lqa83modtkp6.apps.googleusercontent.com")
-JWT_SECRET = os.getenv("JWT_SECRET", "9xq2A5zXsmaxFn6KEk2bAIOm8VN3NU2OpF3TUU8euSDnCrc3uEDXRXN4pzuOlWXC")
 JWT_ALGORITHM = "HS256"
 JWT_EXP_MINUTES = 60
 
@@ -37,6 +35,8 @@ async def verify_google_token(id_token: str) -> dict:
 	if resp.status_code != 200:
 		raise HTTPException(status_code=401, detail="Token de Google inválido")
 	payload = resp.json()
+	print(payload.get("aud"))
+	print(GOOGLE_CLIENT_ID)
 	if payload.get("aud") != GOOGLE_CLIENT_ID:
 		raise HTTPException(status_code=401, detail="Token de Google no válido para este cliente")
 	return payload
@@ -50,7 +50,7 @@ async def get_or_create_user(google_id: str, email: str) -> User:
 	new_user = User(
 		google_id=google_id,
 		email=email,
-		creation_date=datetime.utcnow()
+		creation_date=datetime.now(timezone.utc)
 	)
 	inserted_id = await user_repository.save(new_user)
 	new_user.id = inserted_id
@@ -62,7 +62,7 @@ def create_jwt(user: User) -> str:
 		"sub": user.id,
 		"google_id": user.google_id,
 		"email": user.email,
-		"exp": datetime.utcnow() + timedelta(minutes=JWT_EXP_MINUTES)
+		"exp": datetime.now(timezone.utc) + timedelta(minutes=JWT_EXP_MINUTES)
 	}
 	token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 	return token
