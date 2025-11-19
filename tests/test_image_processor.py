@@ -12,7 +12,7 @@ mock_config = Mock()
 mock_config.get.return_value = "mock_value"
 
 with patch('app.core.config_service.ConfigService', return_value=mock_config):
-    from app.core.image_processor import resize_image, process_image
+    from app.core.image_processor import _resize_image as resize_image, process_image
     from app.settings import azure_cv_client
 
 

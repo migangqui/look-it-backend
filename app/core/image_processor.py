@@ -7,9 +7,11 @@ from PIL import Image
 from app.settings import azure_cv_client
 
 
-def resize_image(image_bytes: bytes, max_size: int = 1024) -> bytes:
+def _resize_image(image_bytes: bytes, max_size: int = 1024) -> bytes:
     """
-    Resizes an image maintaining aspect ratio to a maximum dimension.
+    Private function that resizes an image maintaining aspect ratio to a maximum dimension.
+    
+    This is an internal utility function used by process_image().
     
     Args:
         image_bytes: Bytes of the original image
@@ -74,7 +76,7 @@ def process_image(image_bytes: bytes) -> dict:
     
     # 1. Resize image to optimize processing (max 1024x1024 maintaining aspect ratio)
     try:
-        resized_image_bytes = resize_image(image_bytes, max_size=1024)
+        resized_image_bytes = _resize_image(image_bytes, max_size=1024)
     except Exception as e:
         raise Exception(f"Error resizing image: {str(e)}")
     
