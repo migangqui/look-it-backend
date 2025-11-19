@@ -69,7 +69,7 @@ async def upload_garment(user_id: str, image_bytes: bytes, filename: str) -> Gar
     
     # Step 2: Map type to role
     try:
-        mapped_role = map_type_to_role(garment_type)
+        mapped_role = _map_type_to_role(garment_type)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error mapping type to role: {str(e)}")
     
