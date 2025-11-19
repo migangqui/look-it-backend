@@ -5,7 +5,9 @@ garment_items_collection = db["garment_items"]
 
 async def save(garment: GarmentItem):
     garment_dict = garment.model_dump(by_alias=True, exclude_none=True)
-    await garment_items_collection.insert_one(garment_dict)
+    result = await garment_items_collection.insert_one(garment_dict)
+    # Update garment with inserted ID
+    garment.id = str(result.inserted_id)
     return garment
 
 async def find_by_user_id(user_id: str):
