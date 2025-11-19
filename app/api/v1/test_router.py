@@ -5,7 +5,7 @@ from app.db.repository.user_repository import find_by_email, save, list as list_
 
 router = APIRouter()
 
-# Endpoint para listar todos los usuarios
+# Endpoint to list all users
 @router.get("/users")
 async def get_users():
     users = await list_users()
@@ -19,17 +19,17 @@ async def get_user_endpoint(email: str):
     return {"error": "User not found"}
 
 @router.post("/users")
-async def crear_usuario_prueba(
+async def create_test_user(
     email: str = Body(...),
     google_id: str = Body(...)
 ):
     user = await find_by_email(email)
     if user:
         return {"error": "User already exists"}
-    nuevo_usuario = User(
+    new_user = User(
         google_id=google_id,
         email=email,
         creation_date=datetime.now(timezone.utc)
     )
-    result = await save(nuevo_usuario)
+    result = await save(new_user)
     return {"id": str(result)}

@@ -198,7 +198,7 @@ Función principal que coordina todo el proceso.
 
 **Endpoints a implementar**:
 
-#### `POST /api/v1/garment/upload`
+#### `POST /api/v1/garment`
 Endpoint protegido para subir una prenda.
 
 **Especificaciones**:
@@ -232,7 +232,7 @@ from app.core.garment_service import upload_garment
 
 router = APIRouter()
 
-@router.post("/upload")
+@router.post
 async def upload_garment_endpoint(
     file: UploadFile = File(...),
     current_user: dict = Depends(get_current_user)
@@ -257,7 +257,7 @@ async def upload_garment_endpoint(
     return garment.model_dump()
 ```
 
-#### `GET /api/v1/garment/list`
+#### `GET /api/v1/garments`
 Endpoint protegido para listar prendas del usuario autenticado.
 
 **Especificaciones**:
@@ -286,7 +286,7 @@ Endpoint protegido para listar prendas del usuario autenticado.
 ```python
 from app.db.repository.garmentitem_repository import find_by_user_id
 
-@router.get("/list")
+@router.get
 async def list_garments(
     current_user: dict = Depends(get_current_user)
 ):

@@ -1,5 +1,5 @@
 # config_service.py
-# Lógica de inicialización y conexión a Google Secret Manager (GSM)
+# Initialization logic and connection to Google Secret Manager (GSM)
 
 from google.cloud import secretmanager
 import os
@@ -10,9 +10,9 @@ class ConfigService:
 		self._load_secrets()
 
 	def _load_secrets(self):
-		# Ejemplo: cargar secretos desde Google Secret Manager
+		# Example: load secrets from Google Secret Manager
 		client = secretmanager.SecretManagerServiceClient()
-		# Aquí deberías definir los nombres de los secretos a recuperar
+		# Here you should define the names of the secrets to retrieve
 		secret_names = ["MONGO_URI", "AZURE_COMPUTER_VISION_KEY", "PRUEBA_SECRETO", "GOOGLE_CLIENT_ID", "JWT_SECRET"]
 		project_id = "look-it-478017"
 		for secret_name in secret_names:

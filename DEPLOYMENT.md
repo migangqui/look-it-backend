@@ -202,6 +202,7 @@ export IMAGE_TAG=${1:-latest}
 echo "Desplegando en Cloud Run..."
 gcloud run deploy look-it-backend-service \
     --image $REGION-docker.pkg.dev/$PROJECT_ID/$AR_REPO/look-it-backend:$IMAGE_TAG \
+    --service-account look-it-backend@look-it-478017.iam.gserviceaccount.com \
     --region $REGION \
     --platform managed \
     --allow-unauthenticated \

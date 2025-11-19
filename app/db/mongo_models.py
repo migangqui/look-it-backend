@@ -2,7 +2,7 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from datetime import datetime
 
-# Validador reutilizable para ObjectId
+# Reusable validator for ObjectId
 def objectid_to_str(cls, v):
 	try:
 		from bson import ObjectId
@@ -12,9 +12,9 @@ def objectid_to_str(cls, v):
 		return str(v)
 	return v
 
-# Modelo para la colección 'users'
+# Model for the 'users' collection
 class User(BaseModel):
-	id: Optional[str] = Field(None, alias="_id")  # ObjectId como string, opcional
+	id: Optional[str] = Field(None, alias="_id")  # ObjectId as string, optional
 	google_id: str
 	email: str
 	creation_date: datetime
@@ -28,7 +28,7 @@ class GarmentItem(BaseModel):
 	user_id: str
 	storage_url: str
 	type: str
-	role: str  # Ej: Superior Primario, Capa, Inferior
+	role: str  # E.g: Superior Primario, Capa, Inferior
 	color: Optional[str] = None
 	occasion: Optional[str] = None
 	creation_date: datetime

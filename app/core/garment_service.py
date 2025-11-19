@@ -24,9 +24,9 @@ def _map_type_to_role(type: str) -> str:
     
     if any(keyword in type_lower for keyword in ["shirt", "top", "blouse", "t-shirt", "tshirt"]):
         return "Superior Primario"
-    elif any(keyword in type_lower for keyword in ["jacket", "coat", "blazer"]):
+    elif any(keyword in type_lower for keyword in ["jacket", "coat", "blazer", "outerwear"]):
         return "Capa"
-    elif any(keyword in type_lower for keyword in ["pants", "jeans", "trousers", "shorts"]):
+    elif any(keyword in type_lower for keyword in ["pants", "jeans", "trousers", "trouser", "shorts"]):
         return "Inferior"
     elif any(keyword in type_lower for keyword in ["shoe", "boot", "sneaker", "sandal", "footwear"]):
         return "Calzado"
@@ -35,26 +35,6 @@ def _map_type_to_role(type: str) -> str:
 
 
 async def upload_garment(user_id: str, image_bytes: bytes, filename: str) -> GarmentItem:
-    """
-    Orchestrates the complete garment digitalization flow.
-    
-    Steps:
-    1. Process image (remove background and classify)
-    2. Map type to role
-    3. Upload processed image to Google Cloud Storage
-    4. Create and save GarmentItem in MongoDB
-    
-    Args:
-        user_id: User ID from JWT token
-        image_bytes: Original image bytes
-        filename: Original filename
-        
-    Returns:
-        GarmentItem: Created garment item
-        
-    Raises:
-        HTTPException: If any step fails
-    """
     # Step 1: Process image
     try:
         processing_result = process_image(image_bytes)
@@ -90,8 +70,8 @@ async def upload_garment(user_id: str, image_bytes: bytes, filename: str) -> Gar
         blob.upload_from_string(processed_image_bytes, content_type="image/png")
         
         # Make blob publicly accessible and get URL
-        blob.make_public()
-        storage_url = blob.public_url
+        storage_url = f"https://storage.googleapis.com/{GCS_BUCKET_NAME}/{blob_name}"
+
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error uploading to storage: {str(e)}")
     
