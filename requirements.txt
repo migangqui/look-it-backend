@@ -9,3 +9,7 @@ google-cloud-secret-manager
 azure-cognitiveservices-vision-computervision
 python-dotenv
 pymongo
+Pillow
+pytest
+pytest-mock
+pytest-asyncio
