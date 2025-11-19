@@ -12,6 +12,10 @@ async def find_by_email(email: str):
     doc = await users_collection.find_one({"email": email})
     return User(**doc) if doc else None
 
+async def find_by_google_id(google_id: str):
+    doc = await users_collection.find_one({"google_id": google_id})
+    return User(**doc) if doc else None
+
 async def list():
     cursor = users_collection.find()
     return [User(**doc) async for doc in cursor]
