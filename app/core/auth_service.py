@@ -26,43 +26,48 @@ from app.settings import GOOGLE_CLIENT_ID, JWT_SECRET
 
 # Configuration
 JWT_ALGORITHM = "HS256"
-JWT_EXP_MINUTES = 60
+JWT_EXP_DAYS = 1
 
-async def verify_google_token(id_token: str) -> dict:
-	"""Validates Google ID token and returns payload."""
+async def loginByGoogleToken(id_token: str) -> str:
+	payload = await _verify_google_token(id_token)
+	google_id = payload["sub"]
+	email = payload["email"]
+	user = await _get_or_create_user(google_id, email)
+	jwt_token = _create_jwt(user)
+	return jwt_token
+
+async def _verify_google_token(id_token: str) -> dict:
 	url = f"https://oauth2.googleapis.com/tokeninfo?id_token={id_token}"
 	resp = requests.get(url)
 	if resp.status_code != 200:
 		raise HTTPException(status_code=401, detail="Invalid Google token")
 	payload = resp.json()
-	print(payload.get("aud"))
-	print(GOOGLE_CLIENT_ID)
 	if payload.get("aud") != GOOGLE_CLIENT_ID:
 		raise HTTPException(status_code=401, detail="Google token not valid for this client")
 	return payload
 
-async def get_or_create_user(google_id: str, email: str) -> User:
-	"""Finds or creates user in MongoDB."""
+async def _get_or_create_user(google_id: str, email: str) -> User:
 	user = await user_repository.find_by_google_id(google_id)
-	print(user)
 	if user:
+		user.last_login_date = datetime.now(timezone.utc)
+		await user_repository.save(user)
 		return user
 	new_user = User(
 		google_id=google_id,
 		email=email,
-		creation_date=datetime.now(timezone.utc)
+		creation_date=datetime.now(timezone.utc),
+		last_login_date=datetime.now(timezone.utc)
 	)
 	inserted_id = await user_repository.save(new_user)
 	new_user.id = inserted_id
 	return new_user
 
-def create_jwt(user: User) -> str:
-	"""Generates a JWT for the authenticated user."""
+def _create_jwt(user: User) -> str:
 	payload = {
 		"sub": user.id,
 		"google_id": user.google_id,
 		"email": user.email,
-		"exp": datetime.now(timezone.utc) + timedelta(minutes=JWT_EXP_MINUTES)
+		"exp": datetime.now(timezone.utc) + timedelta(days=JWT_EXP_DAYS)
 	}
 	token = jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 	return token

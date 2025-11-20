@@ -3,7 +3,7 @@ from typing import Optional
 from datetime import datetime
 
 # Reusable validator for ObjectId
-def objectid_to_str(cls, v):
+def _objectid_to_str(cls, v):
 	try:
 		from bson import ObjectId
 	except ImportError:
@@ -18,10 +18,11 @@ class User(BaseModel):
 	google_id: str
 	email: str
 	creation_date: datetime
+	last_login_date: Optional[datetime] = None
 
 	@field_validator('id', mode='before')
 	def validate_id(cls, v):
-		return objectid_to_str(cls, v)
+		return _objectid_to_str(cls, v)
 
 class GarmentItem(BaseModel):
 	id: Optional[str] = Field(None, alias="_id")
@@ -35,5 +36,5 @@ class GarmentItem(BaseModel):
 
 	@field_validator('id', mode='before')
 	def validate_id(cls, v):
-		return objectid_to_str(cls, v)
+		return _objectid_to_str(cls, v)
     

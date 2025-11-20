@@ -11,27 +11,18 @@ from app.settings import GCS_BUCKET_NAME
 
 
 def _map_type_to_role(type: str) -> str:
-    """
-    Maps Azure Computer Vision garment type to system role.
-    
-    Args:
-        type: Garment type from Azure CV (e.g., "shirt", "pants")
-        
-    Returns:
-        str: System role (e.g., "Superior Primario", "Inferior")
-    """
     type_lower = type.lower()
     
     if any(keyword in type_lower for keyword in ["shirt", "top", "blouse", "t-shirt", "tshirt"]):
-        return "Superior Primario"
-    elif any(keyword in type_lower for keyword in ["jacket", "coat", "blazer", "outerwear"]):
-        return "Capa"
+        return "top"
+    elif any(keyword in type_lower for keyword in ["jacket", "coat", "blazer", "outerwear","windbreaker"]):
+        return "outwear"
     elif any(keyword in type_lower for keyword in ["pants", "jeans", "trousers", "trouser", "shorts"]):
-        return "Inferior"
+        return "bottom"
     elif any(keyword in type_lower for keyword in ["shoe", "boot", "sneaker", "sandal", "footwear"]):
-        return "Calzado"
+        return "footwear"
     else:
-        return "Otro"
+        return "other"
 
 
 async def upload_garment(user_id: str, image_bytes: bytes, filename: str) -> GarmentItem:

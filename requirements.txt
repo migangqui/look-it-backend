@@ -3,10 +3,9 @@ uvicorn
 python-jose
 pydantic
 motor
-rembg
-onnxruntime
 google-cloud-storage
 google-cloud-secret-manager
+google-cloud-vision
 azure-cognitiveservices-vision-computervision
 msrest
 python-multipart
