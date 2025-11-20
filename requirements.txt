@@ -4,9 +4,12 @@ python-jose
 pydantic
 motor
 rembg
+onnxruntime
 google-cloud-storage
 google-cloud-secret-manager
 azure-cognitiveservices-vision-computervision
+msrest
+python-multipart
 python-dotenv
 pymongo
 Pillow
