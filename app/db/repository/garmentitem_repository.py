@@ -16,6 +16,20 @@ async def find_by_user_id(user_id: str):
     cursor = garment_items_collection.find({"user_id": user_id})
     return [GarmentItem(**doc) async for doc in cursor]
 
+async def find_by_id(garment_id: str, user_id: str) -> Optional[GarmentItem]:
+    try:
+        object_id = ObjectId(garment_id)
+    except InvalidId:
+        raise ValueError(f"Invalid garment ID format: {garment_id}")
+    
+    result = await garment_items_collection.find_one(
+        {"_id": object_id, "user_id": user_id}
+    )
+    
+    if result:
+        return GarmentItem(**result)
+    return None
+
 async def delete_by_id(garment_id: str, user_id: str) -> bool:
     try:
         object_id = ObjectId(garment_id)

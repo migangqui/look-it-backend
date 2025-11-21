@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
 from pydantic import BaseModel
 from typing import Optional
 from app.core.auth_service import get_current_user
-from app.core.garment_service import upload_garment, update_garment
-from app.db.repository.garmentitem_repository import find_by_user_id, delete_by_id
+from app.core.garment_service import upload_garment, update_garment, delete_garment
+from app.db.repository.garmentitem_repository import find_by_user_id
+from app.settings import GCS_URL
 
 router = APIRouter()
 
@@ -42,22 +43,18 @@ async def upload_garment_endpoint(
 async def list_garments(
     current_user: dict = Depends(get_current_user)
 ):
-    """
-    List all garments belonging to the authenticated user.
-    
-    Requires authentication. Returns a list of all garments uploaded by the user.
-    """
     user_id = current_user.get("sub")
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid JWT token: missing user_id")
     
     garments = await find_by_user_id(user_id)
-    
+    for garment in garments:
+        garment.image_name = f"{GCS_URL}/{garment.image_name}"
     return [garment.model_dump() for garment in garments]
 
 
 @router.delete("/{garment_id}")
-async def delete_garment(
+async def delete_garment_endpoint(
     garment_id: str,
     current_user: dict = Depends(get_current_user)
 ):
@@ -65,21 +62,9 @@ async def delete_garment(
     if not user_id:
         raise HTTPException(status_code=401, detail="Invalid JWT token: missing user_id")
     
-    try:
-        deleted = await delete_by_id(garment_id, user_id)
-        
-        if not deleted:
-            raise HTTPException(
-                status_code=404,
-                detail=f"Garment with ID {garment_id} not found or does not belong to the user"
-            )
-        
-        return {"message": "Garment deleted successfully", "garment_id": garment_id}
+    await delete_garment(garment_id, user_id)
     
-    except ValueError as e:
-        raise HTTPException(status_code=400, detail=str(e))
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Error deleting garment: {str(e)}")
+    return {"message": "Garment deleted successfully", "garment_id": garment_id}
 
 
 @router.patch("/{garment_id}")

@@ -1,10 +1,12 @@
 from fastapi import HTTPException
 from google.cloud import storage
+from google.cloud.exceptions import NotFound
 from datetime import datetime, timezone
 from app.core.image_processor import process_image
 from app.db.mongo_models import GarmentItem
-from app.db.repository.garmentitem_repository import save, update_by_id
-from app.settings import GCS_BUCKET_NAME
+from app.db.repository.garmentitem_repository import save, update_by_id, delete_by_id, find_by_id
+from app.settings import GCS_URL, GCS_BUCKET_NAME
+from app.config.google_config import google_storage_client
 
 
 def _map_type_to_role(type: str) -> str:
@@ -40,17 +42,14 @@ async def upload_garment(user_id: str, image_bytes: bytes, filename: str) -> Gar
         raise HTTPException(status_code=500, detail=f"Error mapping type to role: {str(e)}")
     
     try:
-        storage_client = storage.Client()
-        bucket = storage_client.bucket(GCS_BUCKET_NAME)
+        bucket = google_storage_client.bucket(GCS_BUCKET_NAME)
         
         timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
         safe_filename = filename.replace(" ", "_").replace("/", "_")
-        blob_name = f"{user_id}/{timestamp}_{safe_filename}"
+        blob_name = f"garment_images/{user_id}/{timestamp}_{safe_filename}"
         
         blob = bucket.blob(blob_name)
         blob.upload_from_string(processed_image_bytes, content_type="image/png")
-        
-        storage_url = f"https://storage.googleapis.com/{GCS_BUCKET_NAME}/{blob_name}"
 
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error uploading to storage: {str(e)}")
@@ -58,7 +57,7 @@ async def upload_garment(user_id: str, image_bytes: bytes, filename: str) -> Gar
     try:
         garment = GarmentItem(
             user_id=user_id,
-            storage_url=storage_url,
+            image_name=blob_name,
             type=garment_type,
             role=mapped_role,
             color=color,
@@ -88,3 +87,53 @@ async def update_garment(garment_id: str, user_id: str, update_data: dict) -> Ga
         raise HTTPException(status_code=400, detail=str(e))
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error updating garment: {str(e)}")
+
+
+async def delete_garment(garment_id: str, user_id: str) -> bool:
+    try:
+        # First, get the garment to obtain the storage_url
+        garment = await find_by_id(garment_id, user_id)
+        
+        if not garment:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Garment with ID {garment_id} not found or does not belong to the user"
+            )
+        
+        # Extract blob_name from storage_url
+        # storage_url format: https://storage.googleapis.com/{bucket_name}/{blob_name}
+        storage_url = garment.storage_url
+        blob_name = storage_url.replace(f"{GCS_URL}/", "")
+        
+        # Delete the blob from GCS
+        try:
+            bucket = google_storage_client.bucket(GCS_BUCKET_NAME)
+            blob = bucket.blob(blob_name)
+            blob.delete()
+        except NotFound:
+            # Blob doesn't exist in GCS, but we continue with MongoDB deletion
+            # This can happen if the blob was already deleted manually
+            pass
+        except Exception as e:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error deleting image from storage: {str(e)}"
+            )
+        
+        # Delete from MongoDB
+        deleted = await delete_by_id(garment_id, user_id)
+        
+        if not deleted:
+            raise HTTPException(
+                status_code=500,
+                detail=f"Error deleting garment from database"
+            )
+        
+        return True
+    
+    except HTTPException:
+        raise
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error deleting garment: {str(e)}")

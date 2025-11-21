@@ -9,3 +9,4 @@ MONGO_URI = config.get("MONGO_URI")
 GOOGLE_CLIENT_ID = config.get("GOOGLE_CLIENT_ID")
 JWT_SECRET = config.get("JWT_SECRET")
 GCS_BUCKET_NAME = "look-it-storage"
+GCS_URL = f"https://storage.googleapis.com/{GCS_BUCKET_NAME}"

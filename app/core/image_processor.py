@@ -3,7 +3,7 @@
 
 #from rembg import remove
 from io import BytesIO
-from PIL import Image
+from PIL import Image, ImageOps
 from app.core.cv_service.google_cv_service import analyze_image
 
 
@@ -12,8 +12,8 @@ def _resize_image(image_bytes: bytes, max_size: int = 1024) -> bytes:
         # Open image from bytes
         original_image = Image.open(BytesIO(image_bytes))
         
-        # Make a copy to preserve original
-        image_to_process = original_image.copy()
+        # Apply EXIF orientation if present (fixes rotated images)
+        image_to_process = ImageOps.exif_transpose(original_image)
         
         # Resize using thumbnail (maintains aspect ratio, only reduces if needed)
         # Uses LANCZOS resampling for best quality when reducing

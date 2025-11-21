@@ -27,7 +27,7 @@ class User(BaseModel):
 class GarmentItem(BaseModel):
 	id: Optional[str] = Field(None, alias="_id")
 	user_id: str
-	storage_url: str
+	image_name: str
 	type: str
 	role: str  # E.g: Superior Primario, Capa, Inferior
 	color: Optional[str] = None
