@@ -295,10 +295,178 @@ async def list_garments(
     return [garment.model_dump() for garment in garments]
 ```
 
+#### `PATCH /api/v1/garments/{garment_id}`
+Endpoint protegido para editar propiedades de una prenda existente.
+
+**Especificaciones**:
+- **Autenticación**: Requerida (usar `Depends(get_current_user)`)
+- **Content-Type**: `application/json`
+- **Parámetros de ruta**:
+  - `garment_id`: ID de la prenda a editar (string)
+- **Body** (actualización parcial, todos los campos opcionales):
+  ```json
+  {
+    "type": "string | null",
+    "role": "string | null",
+    "color": "string | null",
+    "occasion": "string | null"
+  }
+  ```
+- **Respuesta exitosa** (200):
+  ```json
+  {
+    "id": "string",
+    "user_id": "string",
+    "storage_url": "string",
+    "type": "string",
+    "role": "string",
+    "color": "string | null",
+    "occasion": "string | null",
+    "creation_date": "ISO datetime string"
+  }
+  ```
+- **Errores**:
+  - 401: Token JWT inválido o ausente
+  - 400: ID de prenda inválido o formato incorrecto
+  - 403: La prenda no pertenece al usuario autenticado
+  - 404: Prenda no encontrada
+  - 500: Error interno del servidor
+
+**Restricciones**:
+- No se puede editar `storage_url` (campo bloqueado)
+- No se puede editar `user_id`, `id`, ni `creation_date` (campos inmutables)
+- Solo se pueden editar: `type`, `role`, `color`, `occasion`
+- La actualización es parcial: solo se actualizan los campos enviados en el body
+
+**Implementación**:
+
+1. **Crear modelo Pydantic para el request**:
+```python
+from pydantic import BaseModel
+from typing import Optional
+
+class GarmentUpdate(BaseModel):
+    type: Optional[str] = None
+    role: Optional[str] = None
+    color: Optional[str] = None
+    occasion: Optional[str] = None
+```
+
+2. **Añadir método al repositorio** (`app/db/repository/garmentitem_repository.py`):
+```python
+async def update_by_id(garment_id: str, user_id: str, update_data: dict) -> Optional[GarmentItem]:
+    """
+    Update a garment by ID, ensuring it belongs to the specified user.
+    
+    Args:
+        garment_id: The ID of the garment to update
+        user_id: The ID of the user who owns the garment
+        update_data: Dictionary with fields to update (excludes storage_url, user_id, id, creation_date)
+        
+    Returns:
+        Updated GarmentItem if found and updated, None if not found
+        
+    Raises:
+        ValueError: If garment_id is not a valid ObjectId
+    """
+    try:
+        object_id = ObjectId(garment_id)
+    except InvalidId:
+        raise ValueError(f"Invalid garment ID format: {garment_id}")
+    
+    # Filter out immutable fields
+    allowed_fields = {"type", "role", "color", "occasion"}
+    filtered_data = {k: v for k, v in update_data.items() if k in allowed_fields and v is not None}
+    
+    if not filtered_data:
+        # No valid fields to update
+        raise ValueError("No valid fields to update")
+    
+    result = await garment_items_collection.find_one_and_update(
+        {"_id": object_id, "user_id": user_id},
+        {"$set": filtered_data},
+        return_document=True
+    )
+    
+    if result:
+        return GarmentItem(**result)
+    return None
+```
+
+3. **Añadir función al servicio** (`app/core/garment_service.py`):
+```python
+async def update_garment(garment_id: str, user_id: str, update_data: dict) -> GarmentItem:
+    """
+    Update a garment's properties.
+    
+    Args:
+        garment_id: ID of the garment to update
+        user_id: ID of the user who owns the garment
+        update_data: Dictionary with fields to update
+        
+    Returns:
+        Updated GarmentItem
+        
+    Raises:
+        HTTPException: 404 if garment not found, 403 if not owner, 400 if invalid data
+    """
+    from app.db.repository.garmentitem_repository import update_by_id
+    
+    try:
+        updated_garment = await update_by_id(garment_id, user_id, update_data)
+        
+        if not updated_garment:
+            raise HTTPException(
+                status_code=404,
+                detail=f"Garment with ID {garment_id} not found or does not belong to the user"
+            )
+        
+        return updated_garment
+    
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error updating garment: {str(e)}")
+```
+
+4. **Añadir endpoint al router** (`app/api/v1/garment_router.py`):
+```python
+from app.core.garment_service import update_garment
+
+@router.patch("/{garment_id}")
+async def update_garment_endpoint(
+    garment_id: str,
+    update_data: GarmentUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """
+    Update a garment's properties by ID.
+    
+    Requires authentication. Only allows updating garments belonging to the authenticated user.
+    Supports partial updates - only include fields you want to update.
+    """
+    # Get user_id from JWT token
+    user_id = current_user.get("sub")
+    if not user_id:
+        raise HTTPException(status_code=401, detail="Invalid JWT token: missing user_id")
+    
+    # Convert Pydantic model to dict, excluding None values
+    update_dict = update_data.model_dump(exclude_none=True)
+    
+    # Update garment
+    updated_garment = await update_garment(
+        garment_id=garment_id,
+        user_id=user_id,
+        update_data=update_dict
+    )
+    
+    return updated_garment.model_dump()
+```
+
 **Montaje del router**:
 - Descomentar en `app/main.py`:
   ```python
-  app.include_router(garment_router.router, prefix="/api/v1/garment")
+  app.include_router(garment_router.router, prefix="/api/v1/garments")
   ```
 
 ---
