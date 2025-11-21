@@ -10,13 +10,17 @@ def analyze_image(image_bytes: bytes) -> ImageAnalysis:
     
     # Create image object from bytes
     image = vision.Image(content=image_bytes)
+
+    response = client.annotate_image({
+        'image': image,
+        'features': [
+            {'type_': vision.Feature.Type.LABEL_DETECTION},
+            {'type_': vision.Feature.Type.IMAGE_PROPERTIES},
+        ],
+    })
     
-    # Perform label detection and image properties analysis
-    label_response = client.label_detection(image=image)
-    properties_response = client.image_properties(image=image)
-    
-    labels = label_response.label_annotations
-    image_properties = properties_response.image_properties_annotation
+    labels = response.label_annotations
+    image_properties = response.image_properties_annotation
     
     # Extract garment type (first label after filtering)
     garment_type = None
@@ -31,7 +35,6 @@ def analyze_image(image_bytes: bytes) -> ImageAnalysis:
             label for label in sorted_labels 
             if label.description.lower() not in ["clothing", "footwear", "fashion"]
         ]
-        
         if filtered_labels:
             garment_type = filtered_labels[0].description
             tags_list = [label.description for label in filtered_labels]

@@ -55,10 +55,6 @@ def process_image(image_bytes: bytes) -> dict:
         garment_type = analysis_result.type
         tags_list = analysis_result.tags
         color = analysis_result.color
-
-        print(f"Garment type: {garment_type}")
-        print(f"Tags list: {tags_list}")
-        print(f"Color: {color}")
         
     except Exception as e:
         raise Exception(f"Error classifying image with Computer Vision: {str(e)}")

@@ -1,27 +1,32 @@
+from app.db.mongo_models import RoleEnum
 from fastapi import HTTPException
 from google.cloud import storage
 from google.cloud.exceptions import NotFound
 from datetime import datetime, timezone
 from app.core.image_processor import process_image
-from app.db.mongo_models import GarmentItem
+from app.db.mongo_models import GarmentItem, RoleEnum
 from app.db.repository.garmentitem_repository import save, update_by_id, delete_by_id, find_by_id
 from app.settings import GCS_URL, GCS_BUCKET_NAME
 from app.config.google_config import google_storage_client
 
 
-def _map_type_to_role(type: str) -> str:
-    type_lower = type.lower()
-    
-    if any(keyword in type_lower for keyword in ["shirt", "top", "blouse", "t-shirt", "tshirt", "polo", "dress shirt"]):
-        return "top"
-    elif any(keyword in type_lower for keyword in ["jacket", "coat", "blazer", "outerwear","windbreaker"]):
-        return "outwear"
-    elif any(keyword in type_lower for keyword in ["pants", "jeans", "trousers", "trouser", "shorts"]):
-        return "bottom"
-    elif any(keyword in type_lower for keyword in ["shoe", "boot", "sneaker", "sandal", "footwear"]):
-        return "footwear"
+def _map_type_to_role(tags: list[str]) -> RoleEnum:
+    tags_lower = [tag.lower() for tag in tags]
+
+    if any(tag == keyword for tag in tags_lower for keyword in ["shirt", "top", "blouse", "t-shirt", "tshirt", "polo", "dress shirt"]):
+        return RoleEnum.BASE_TOP
+    if any(tag == keyword for tag in tags_lower for keyword in ["hood", "hoodie", "jersey"]):
+        return RoleEnum.MID_TOP
+    elif any(tag == keyword for tag in tags_lower for keyword in ["jacket", "coat", "blazer", "outerwear", "windbreaker"]):
+        return RoleEnum.OUTWEAR_TOP
+    elif any(tag == keyword for tag in tags_lower for keyword in ["pants", "jeans", "trousers", "trouser", "shorts"]):
+        return RoleEnum.BOTTOM
+    elif any(tag == keyword for tag in tags_lower for keyword in ["shoe", "boot", "sneaker", "sandal", "footwear", "knee-high boot", "knee-high boot", "riding boot"]):
+        return RoleEnum.FOOTWEAR
+    elif any(tag == keyword for tag in tags_lower for keyword in ["dress"]):
+        return RoleEnum.FULL_BODY
     else:
-        return "other"
+        return RoleEnum.OTHER
 
 
 async def upload_garment(user_id: str, image_bytes: bytes, filename: str) -> GarmentItem:
@@ -34,10 +39,11 @@ async def upload_garment(user_id: str, image_bytes: bytes, filename: str) -> Gar
     except ValueError as e:
         raise HTTPException(status_code=400, detail=f"Error processing image: {str(e)}")
     except Exception as e:
+        print(f"Error classifying image: {str(e)}")
         raise HTTPException(status_code=502, detail=f"Error classifying image: {str(e)}")
     
     try:
-        mapped_role = _map_type_to_role(garment_type)
+        mapped_role = _map_type_to_role(tags)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error mapping type to role: {str(e)}")
     
@@ -74,7 +80,7 @@ async def upload_garment(user_id: str, image_bytes: bytes, filename: str) -> Gar
 async def update_garment(garment_id: str, user_id: str, update_data: dict) -> GarmentItem:
     try:
         updated_garment = await update_by_id(garment_id, user_id, update_data)
-        
+
         if not updated_garment:
             raise HTTPException(
                 status_code=404,
@@ -93,7 +99,7 @@ async def delete_garment(garment_id: str, user_id: str) -> bool:
     try:
         # First, get the garment to obtain the storage_url
         garment = await find_by_id(garment_id, user_id)
-        
+
         if not garment:
             raise HTTPException(
                 status_code=404,
@@ -102,8 +108,7 @@ async def delete_garment(garment_id: str, user_id: str) -> bool:
         
         # Extract blob_name from storage_url
         # storage_url format: https://storage.googleapis.com/{bucket_name}/{blob_name}
-        storage_url = garment.storage_url
-        blob_name = storage_url.replace(f"{GCS_URL}/", "")
+        blob_name = garment.image_name
         
         # Delete the blob from GCS
         try:
