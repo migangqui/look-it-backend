@@ -2,8 +2,10 @@ from pydantic import BaseModel, Field, field_validator
 from typing import Optional
 from datetime import datetime
 
-# Validador reutilizable para ObjectId
-def objectid_to_str(cls, v):
+from enum import Enum
+
+# Reusable validator for ObjectId
+def _objectid_to_str(cls, v):
 	try:
 		from bson import ObjectId
 	except ImportError:
@@ -12,28 +14,44 @@ def objectid_to_str(cls, v):
 		return str(v)
 	return v
 
-# Modelo para la colección 'users'
+# Model for the 'users' collection
 class User(BaseModel):
-	id: Optional[str] = Field(None, alias="_id")  # ObjectId como string, opcional
+	id: Optional[str] = Field(None, alias="_id")  # ObjectId as string, optional
 	google_id: str
 	email: str
 	creation_date: datetime
+	last_login_date: Optional[datetime] = None
 
 	@field_validator('id', mode='before')
 	def validate_id(cls, v):
-		return objectid_to_str(cls, v)
+		return _objectid_to_str(cls, v)
+
+class RoleEnum(str, Enum):
+    BASE_TOP = "base_top"
+    MID_TOP = "mid_top"
+    OUTWEAR_TOP = "outwear_top"
+    FOOTWEAR = "footwear"
+    BOTTOM = "bottom"
+    FULL_BODY = "full_body"
+    OTHER = "other"
+
+
+class OccasionEnum(str, Enum):
+    CASUAL = "casual"
+    FORMAL = "formal"
+    ALL = "all"
 
 class GarmentItem(BaseModel):
 	id: Optional[str] = Field(None, alias="_id")
 	user_id: str
-	storage_url: str
+	image_name: str
 	type: str
-	role: str  # Ej: Superior Primario, Capa, Inferior
+	role: RoleEnum
 	color: Optional[str] = None
-	occasion: Optional[str] = None
+	occasion: Optional[OccasionEnum] = None
 	creation_date: datetime
 
 	@field_validator('id', mode='before')
 	def validate_id(cls, v):
-		return objectid_to_str(cls, v)
+		return _objectid_to_str(cls, v)
     

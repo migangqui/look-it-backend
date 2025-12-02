@@ -3,9 +3,13 @@ uvicorn
 python-jose
 pydantic
 motor
-rembg
 google-cloud-storage
 google-cloud-secret-manager
-azure-cognitiveservices-vision-computervision
+google-cloud-vision
+python-multipart
 python-dotenv
 pymongo
+Pillow
+pytest
+pytest-mock
+pytest-asyncio

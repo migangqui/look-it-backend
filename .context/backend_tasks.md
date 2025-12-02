@@ -42,7 +42,7 @@
 
 ## Fase 2: Historia 1: Autenticación Rápida (MVP)
 
-*   [ ] **[HU 1 Backend]** Implementar el servicio `app/core/auth_service.py` para:
+*   [X] **[HU 1 Backend]** Implementar el servicio `app/core/auth_service.py` para:
 
     *   Validar el token ID de Google.
 
@@ -50,11 +50,11 @@
 
     *   Generar un token JWT propio para el usuario autenticado y devolverlo al frontend. Este JWT se usará para autenticar las siguientes peticiones a la API.
 
-*   [ ] **[HU 1 Backend]** Implementar la protección de endpoints y validación del token JWT:
+*   [X] **[HU 1 Backend]** Implementar la protección de endpoints y validación del token JWT:
     *   Crear una dependencia de seguridad en FastAPI que valide el JWT recibido en el header Authorization.
     *   Usar esta dependencia en todos los endpoints que requieran autenticación, devolviendo error 401 si el token no es válido o está expirado.
 
-*   [ ] **[HU 1 Backend]** Crear el *router* `app/api/v1/auth_router.py` con el *endpoint* POST (`/login`) que recibe el token de Google y devuelve el token JWT interno.
+*   [X] **[HU 1 Backend]** Crear el *router* `app/api/v1/auth_router.py` con el *endpoint* POST (`/login`) que recibe el token de Google y devuelve el token JWT interno.
 
 * * * * *
 

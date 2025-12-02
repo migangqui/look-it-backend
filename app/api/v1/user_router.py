@@ -7,6 +7,5 @@ router = APIRouter()
 
 @router.get("/me", response_model=User)
 async def get_me(current_user: dict = Depends(get_current_user)):
-    """Returns the authenticated user's information."""
     user = await find_by_email(current_user.get("email"))
     return user

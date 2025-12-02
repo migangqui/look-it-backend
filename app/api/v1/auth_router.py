@@ -1,7 +1,7 @@
 
-from fastapi import APIRouter, Request
+from fastapi import APIRouter
 from pydantic import BaseModel
-from app.core.auth_service import verify_google_token, get_or_create_user, create_jwt
+from app.core.auth_service import loginByGoogleToken
 
 router = APIRouter()
 
@@ -10,9 +10,5 @@ class LoginRequest(BaseModel):
 
 @router.post("/login")
 async def login(data: LoginRequest):
-	payload = await verify_google_token(data.id_token)
-	google_id = payload["sub"]
-	email = payload["email"]
-	user = await get_or_create_user(google_id, email)
-	jwt_token = create_jwt(user)
+	jwt_token = await loginByGoogleToken(data.id_token)
 	return {"token": jwt_token}
