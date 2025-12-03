@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, UploadFile, File, HTTPException
-from pydantic import BaseModel
 from typing import Optional
+
+from fastapi import APIRouter, Depends, File, HTTPException, UploadFile
+from pydantic import BaseModel, Field
 from app.core.auth_service import get_current_user
 from app.core.garment_service import upload_garment, update_garment, delete_garment
 from app.db.repository.garmentitem_repository import find_by_user_id
@@ -14,6 +15,9 @@ class GarmentUpdate(BaseModel):
     role: Optional[str] = None
     color: Optional[str] = None
     occasion: Optional[str] = None
+    warmth: Optional[int] = Field(default=None, ge=1, le=5)
+    pattern: Optional[str] = None
+    pattern_intensity: Optional[int] = Field(default=None, ge=1, le=3)
 
 
 @router.post("")
@@ -33,7 +37,7 @@ async def upload_garment_endpoint(
     garment = await upload_garment(
         user_id=user_id,
         image_bytes=image_bytes,
-        filename=file.filename or "image"
+        filename=file.filename or "image",
     )
     
     return garment.model_dump()

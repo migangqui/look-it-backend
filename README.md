@@ -55,3 +55,12 @@ Backend para la aplicación de Armario Inteligente y Generación de Looks.
 ```bash
 uvicorn app.main:app --reload
 ```
+
+## Campos adicionales de prenda
+
+Cada prenda almacenada puede incluir campos adicionales:
+- `warmth` (1–5): nivel de calidez de la prenda.
+- `pattern`: tipo de patrón (`solid`, `stripes`, `checks`, `micro_print`, `print`).
+- `pattern_intensity` (1–3): intensidad del patrón, de muy sutil a muy marcado.
+
+En el endpoint de subida de prenda (`POST /api/v1/garments`) estos campos son opcionales y se envían como campos de formulario junto con la imagen. En las respuestas de la API se devuelven como parte del objeto de prenda.

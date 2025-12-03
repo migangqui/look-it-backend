@@ -1,19 +1,24 @@
-from app.db.mongo_models import RoleEnum
-from fastapi import HTTPException
-from google.cloud import storage
-from google.cloud.exceptions import NotFound
 from datetime import datetime, timezone
+
+from fastapi import HTTPException
+from google.cloud.exceptions import NotFound
+
+from app.config.google_config import google_storage_client
 from app.core.image_processor import process_image
 from app.db.mongo_models import GarmentItem, RoleEnum
-from app.db.repository.garmentitem_repository import save, update_by_id, delete_by_id, find_by_id
-from app.settings import GCS_URL, GCS_BUCKET_NAME
-from app.config.google_config import google_storage_client
+from app.db.repository.garmentitem_repository import (
+    delete_by_id,
+    find_by_id,
+    save,
+    update_by_id,
+)
+from app.settings import GCS_BUCKET_NAME
 
 
 def _map_type_to_role(tags: list[str]) -> RoleEnum:
     tags_lower = [tag.lower() for tag in tags]
-
-    if any(tag == keyword for tag in tags_lower for keyword in ["shirt", "top", "blouse", "t-shirt", "tshirt", "polo", "dress shirt"]):
+    print(f"Mapping tags to role: {tags_lower}")
+    if any(tag == keyword for tag in tags_lower for keyword in ["shirt", "top", "blouse", "t-shirt", "tshirt", "polo", "dress shirt", "active shirt"]):
         return RoleEnum.BASE_TOP
     if any(tag == keyword for tag in tags_lower for keyword in ["hood", "hoodie", "jersey"]):
         return RoleEnum.MID_TOP
@@ -29,7 +34,11 @@ def _map_type_to_role(tags: list[str]) -> RoleEnum:
         return RoleEnum.OTHER
 
 
-async def upload_garment(user_id: str, image_bytes: bytes, filename: str) -> GarmentItem:
+async def upload_garment(
+    user_id: str,
+    image_bytes: bytes,
+    filename: str,
+) -> GarmentItem:
     try:
         processing_result = process_image(image_bytes)
         processed_image_bytes = processing_result["processed_image_bytes"]
@@ -49,11 +58,11 @@ async def upload_garment(user_id: str, image_bytes: bytes, filename: str) -> Gar
     
     try:
         bucket = google_storage_client.bucket(GCS_BUCKET_NAME)
-        
+
         timestamp = int(datetime.now(timezone.utc).timestamp() * 1000)
         safe_filename = filename.replace(" ", "_").replace("/", "_")
         blob_name = f"garment_images/{user_id}/{timestamp}_{safe_filename}"
-        
+
         blob = bucket.blob(blob_name)
         blob.upload_from_string(processed_image_bytes, content_type="image/png")
 
@@ -68,7 +77,7 @@ async def upload_garment(user_id: str, image_bytes: bytes, filename: str) -> Gar
             role=mapped_role,
             color=color,
             occasion=None,
-            creation_date=datetime.now(timezone.utc)
+            creation_date=datetime.now(timezone.utc),
         )
         
         await save(garment)

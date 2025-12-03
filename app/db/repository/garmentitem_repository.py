@@ -49,7 +49,15 @@ async def update_by_id(garment_id: str, user_id: str, update_data: dict) -> Opti
     except InvalidId:
         raise ValueError(f"Invalid garment ID format: {garment_id}")
     
-    allowed_fields = {"type", "role", "color", "occasion"}
+    allowed_fields = {
+        "type",
+        "role",
+        "color",
+        "occasion",
+        "warmth",
+        "pattern",
+        "pattern_intensity",
+    }
     filtered_data = {k: v for k, v in update_data.items() if k in allowed_fields and v is not None}
     
     if not filtered_data:

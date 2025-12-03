@@ -41,6 +41,7 @@ class OccasionEnum(str, Enum):
     FORMAL = "formal"
     ALL = "all"
 
+
 class GarmentItem(BaseModel):
 	id: Optional[str] = Field(None, alias="_id")
 	user_id: str
@@ -49,6 +50,9 @@ class GarmentItem(BaseModel):
 	role: RoleEnum
 	color: Optional[str] = None
 	occasion: Optional[OccasionEnum] = None
+	warmth: Optional[int] = Field(default=None, ge=1, le=5)
+	pattern: Optional[str] = None
+	pattern_intensity: Optional[int] = Field(default=None, ge=1, le=3)
 	creation_date: datetime
 
 	@field_validator('id', mode='before')
