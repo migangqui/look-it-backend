@@ -295,26 +295,26 @@ async def generate_outfits(
     occasion: OccasionEnum,
     city: str,
     country_code: str,
+    temperature: float | None = None,
     target_date: date | None = None,
     cold_sensitivity: float = 0,
     n_results: int = 10,
 ) -> List[List[GarmentItem]]:
     if n_results <= 0:
         return []
-    
-    print("n_results:", n_results)
 
     garments: List[GarmentItem] = await find_by_user_id(user_id)
     if not garments:
         return []
 
-    temperature_c = await get_temperature_c_for_city(
-        city=city,
-        country_code=country_code,
-        target_date=target_date,
-    )
-
-    temperature_c = 20.0  # TEMPORARY OVERRIDE FOR TESTING
+    if temperature is not None:
+        temperature_c = float(temperature)
+    else:
+        temperature_c = await get_temperature_c_for_city(
+            city=city,
+            country_code=country_code,
+            target_date=target_date,
+        )
 
     target_warmth = compute_target_warmth(temperature_c, cold_sensitivity)
 

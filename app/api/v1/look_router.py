@@ -16,6 +16,7 @@ class LookRequest(BaseModel):
     occasion: OccasionEnum
     city: str
     country_code: str
+    temperature: Optional[float] = None
     date: Optional[date] = None
     cold_sensitivity: float = Field(0, ge=-1, le=1)
     n_results: int = Field(1, ge=1, le=20)
@@ -38,6 +39,7 @@ async def generate_looks(
         occasion=body.occasion,
         city=body.city,
         country_code=body.country_code,
+        temperature=body.temperature,
         target_date=body.date,
         cold_sensitivity=body.cold_sensitivity,
         n_results=body.n_results,
