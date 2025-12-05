@@ -10,6 +10,3 @@ python-multipart
 python-dotenv
 pymongo
 Pillow
-pytest
-pytest-mock
-pytest-asyncio
