@@ -13,7 +13,7 @@ class ConfigService:
 		# Example: load secrets from Google Secret Manager
 		client = secretmanager.SecretManagerServiceClient()
 		# Here you should define the names of the secrets to retrieve
-		secret_names = ["MONGO_URI", "PRUEBA_SECRETO", "GOOGLE_CLIENT_ID", "JWT_SECRET", "OPENWEATHERMAP_API_KEY"]
+		secret_names = ["MONGO_URI", "PRUEBA_SECRETO", "GOOGLE_CLIENT_ID", "JWT_SECRET", "OPENWEATHERMAP_API_KEY", "GEMINI_API_KEY"]
 		project_id = "look-it-478017"
 		for secret_name in secret_names:
 			name = f"projects/{project_id}/secrets/{secret_name}/versions/latest"

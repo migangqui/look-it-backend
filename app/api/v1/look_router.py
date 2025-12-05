@@ -7,6 +7,7 @@ from pydantic import BaseModel, Field
 from app.core.auth_service import get_current_user
 from app.core.look_generator import generate_outfits
 from app.db.mongo_models import OccasionEnum
+from app.settings import GCS_URL
 
 
 router = APIRouter()
@@ -42,6 +43,11 @@ async def generate_looks(
         cold_sensitivity=body.cold_sensitivity,
         n_results=body.n_results,
     )
+
+    for outfit in outfits:
+        for garment in outfit:
+            if GCS_URL not in garment.image_name:
+                garment.image_name = f"{GCS_URL}/{garment.image_name}"
 
     return [
         [garment.model_dump() for garment in outfit]
