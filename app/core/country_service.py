@@ -15,7 +15,7 @@ def get_countries_list() -> List[str]:
 
     prompt = (
         "Dame una lista de los country code (ej: ES, GB, US) "
-        "de todos los países en formato lista JSON. "
+        "de todos los países en orden alfabético y en formato lista JSON. "
         "Solo la lista sin texto adicional ni ```json``` ni texto envolvente."
     )
     response = gemini_service.generate_from_prompt(prompt)
