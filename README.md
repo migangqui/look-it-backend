@@ -56,11 +56,9 @@ Backend para la aplicación de Armario Inteligente y Generación de Looks.
 uvicorn app.main:app --reload
 ```
 
-## Campos adicionales de prenda
+## Mejoras para versiones futuras
 
-Cada prenda almacenada puede incluir campos adicionales:
-- `warmth` (1–5): nivel de calidez de la prenda.
-- `pattern`: tipo de patrón (`solid`, `stripes`, `checks`, `micro_print`, `print`).
-- `pattern_intensity` (1–3): intensidad del patrón, de muy sutil a muy marcado.
-
-En el endpoint de subida de prenda (`POST /api/v1/garments`) estos campos son opcionales y se envían como campos de formulario junto con la imagen. En las respuestas de la API se devuelven como parte del objeto de prenda.
+- Usar `open-meteo.com` para obtener la temperatura, ya que es una api gratuita sin api key.
+- Poder elegir fecha y hora futuras para obtener el look.
+- Mejorar el algoritmo para que sea más flexble, no elija siempre las mismas prendas, y no tenga en cuenta ciertas cosas en ciertas ocasiones.
+- Persistir los looks elegidos y poder consultarlos.
