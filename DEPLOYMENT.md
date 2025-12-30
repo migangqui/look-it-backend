@@ -26,7 +26,7 @@ gcloud config set project TU_PROJECT_ID
 Define las siguientes variables según tu configuración:
 
 ```bash
-export REGION="europe-southwest1"  # O tu región preferida
+export REGION="europe-west1"  # O tu región preferida
 export AR_REPO="look-it-repo"      # Nombre para tu repositorio de Artifact Registry
 export PROJECT_ID=$(gcloud config get-value project)
 export IMAGE_TAG="latest"           # Tag para tu imagen (ej: latest, v1.0, google_auth)
@@ -170,7 +170,7 @@ Si prefieres automatizar el proceso, puedes crear scripts que combinen estos pas
 #!/bin/bash
 set -e
 
-export REGION="europe-southwest1"
+export REGION="europe-west1"
 export AR_REPO="look-it-repo"
 export PROJECT_ID=$(gcloud config get-value project)
 export IMAGE_TAG=${1:-latest}
@@ -194,14 +194,14 @@ echo "Imagen subida exitosamente!"
 #!/bin/bash
 set -e
 
-export REGION="europe-southwest1"
+export REGION="europe-west1"
 export AR_REPO="look-it-repo"
 export PROJECT_ID=$(gcloud config get-value project)
 export IMAGE_TAG=${1:-latest}
 
 echo "Desplegando en Cloud Run..."
 gcloud run deploy look-it-backend-service \
-    --image $REGION-docker.pkg.dev/$PROJECT_ID/$AR_REPO/look-it-backend:$IMAGE_TAG \
+    --image europe-southwest1-docker.pkg.dev/$PROJECT_ID/$AR_REPO/look-it-backend:$IMAGE_TAG \
     --service-account look-it-backend@look-it-478017.iam.gserviceaccount.com \
     --region $REGION \
     --platform managed \

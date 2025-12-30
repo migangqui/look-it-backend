@@ -3,7 +3,6 @@ from typing import List, Optional
 
 from app.core import gemini_service
 
-
 _countries_cache: Optional[List[str]] = None
 
 
@@ -15,7 +14,10 @@ def get_countries_list() -> List[str]:
 
     prompt = (
         "Dame una lista de los country code (ej: ES, GB, US) "
-        "de todos los países en orden alfabético y en formato lista JSON. "
+        "de todos los países en orden alfabético y en formato lista JSON, junto con su nombre de pais en inglés, por ejemplo: "
+        """
+        [{"name":"Spain", "code": "ES"}]
+        """
         "Solo la lista sin texto adicional ni ```json``` ni texto envolvente."
     )
     response = gemini_service.generate_from_prompt(prompt)

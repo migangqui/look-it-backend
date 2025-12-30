@@ -14,14 +14,13 @@ from app.api.v1 import (
 )
 from app.core import country_service
 
-
 # Use uvicorn's main logger so startup logs are visible by default
 logger = logging.getLogger("uvicorn")
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    logger.info("Loading country list into cache at startup")
+    logger.info("Loading country list into cache at startup...")
     country_service.get_countries_list()
     yield
 

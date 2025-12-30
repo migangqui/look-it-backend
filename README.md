@@ -62,3 +62,4 @@ uvicorn app.main:app --reload
 - Poder elegir fecha y hora futuras para obtener el look.
 - Mejorar el algoritmo para que sea más flexble, no elija siempre las mismas prendas, y no tenga en cuenta ciertas cosas en ciertas ocasiones.
 - Persistir los looks elegidos y poder consultarlos.
+- Generador de imágenes de look con prendas puestas en modelo.
